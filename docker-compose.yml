@@ -1,0 +1,34 @@
+services:
+  db_mysql:
+    image: mysql:8.0
+    container_name: contenedor_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: poli_ci_db
+    networks:
+      - red_ci_poli
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot123"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web_python:
+    build: .
+    container_name: contenedor_python
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: db_mysql
+      DB_USER: root
+      DB_PASSWORD: root123
+      DB_NAME: poli_ci_db
+    depends_on:
+      db_mysql:
+        condition: service_healthy
+    networks:
+      - red_ci_poli
+
+networks:
+  red_ci_poli:
+    driver: bridge
